@@ -1,0 +1,69 @@
+/* src/components/Button/Button.css */
+.inline-flex {
+    display: inline-flex;
+  }
+  
+  .items-center {
+    align-items: center;
+  }
+  
+  .justify-center {
+    justify-content: center;
+  }
+  
+  .font-medium {
+    font-weight: 500;
+  }
+  
+  .transition-colors {
+    transition: color 0.2s, background-color 0.2s;
+  }
+  
+  .focus\:outline-none:focus {
+    outline: none;
+  }
+  
+  .focus\:ring-2:focus {
+    box-shadow: 0 0 0 2px rgba(0, 128, 128, 0.5);
+  }
+  
+  .focus\:ring-offset-2:focus {
+    box-shadow: 0 0 0 2px rgba(0, 128, 128, 0.5), 0 0 0 4px white;
+  }
+  
+  .focus\:ring-teal-500:focus {
+    box-shadow: 0 0 0 2px rgba(0, 128, 128, 0.5), 0 0 0 4px white;
+  }
+  
+  .bg-white {
+    background-color: white;
+  }
+  
+  .text-gray-700 {
+    color: #4a5568;
+  }
+  
+  .border {
+    border-width: 1px;
+  }
+  
+  .border-gray-300 {
+    border-color: #e2e8f0;
+  }
+  
+  .hover\:bg-gray-50:hover {
+    background-color: #f8fafc;
+  }
+  
+  .bg-teal-700 {
+    background-color: #004d40;
+  }
+  
+  .text-white {
+    color: white;
+  }
+  
+  .hover\:bg-teal-800:hover {
+    background-color: #00332e;
+  }
+  
