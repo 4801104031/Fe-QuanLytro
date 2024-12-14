@@ -46,7 +46,7 @@ const LoginPage = () => {
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
           />
         </div>
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700">Vai trò</label>
           <div className="mt-2 space-y-2">
             <label className="flex items-center">
@@ -70,7 +70,7 @@ const LoginPage = () => {
               <span className="ml-2">User</span>
             </label>
           </div>
-        </div>
+        </div> */}
         <Button
           onClick={handleLogin}
           variant="primary"
@@ -80,7 +80,7 @@ const LoginPage = () => {
         </Button>
         <div className="mt-6 text-center">
           <span className="text-gray-600">Chưa có tài khoản? </span>
-          <Link to="./RegisterPage.js" className="text-teal-600 hover:text-teal-700">
+          <Link to="/register" className="text-teal-600 hover:text-teal-700">
             Đăng ký ngay
           </Link>
         </div>

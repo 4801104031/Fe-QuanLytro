@@ -6,7 +6,7 @@ import AdminLayout from './layouts/AdminLayout';
 import UserLayout from './layouts/UserLayout';
 import LoginPage from './pages/LoginPage'; // Import trang đăng nhập
 import RegisterPage from './pages/RegisterPage';
-
+import UserRoomList from './features/UserManagement/UserRoomList';
 const App = () => (
   <Router>
     <Routes>
@@ -15,6 +15,7 @@ const App = () => (
       <Route path="/register" element={<RegisterPage />} />  {/* Định nghĩa tuyến đường cho trang đăng nhập */}
       <Route path="/admin" element={<AdminLayout />} />
       <Route path="/user" element={<UserLayout />} />
+      <Route path="/rooms" element={<UserRoomList />} /> {/* Thêm route */}
     </Routes>
   </Router>
 );

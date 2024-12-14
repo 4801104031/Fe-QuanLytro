@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { FileText, MessageSquare, Settings } from 'react-feather';
+import { FileText, MessageSquare, Settings, Calendar,Home } from 'react-feather'; // Thêm biểu tượng Calendar
 import './SidebarUser.css';
 
 function SidebarUser({ onNavigate }) {
-  const [activeItem, setActiveItem] = useState('');
+  const [activeItem, setActiveItem] = useState('welcome');
 
   const menuItems = [
+    { id: 'booking', label: 'Đặt phòng', icon: Calendar }, // Đưa mục đặt phòng lên đầu tiên
+    { id: 'roomDetails', label: 'Phòng của bạn', icon: Home }, // Thêm mục Phòng của bạn
     { id: 'bills', label: 'Hóa đơn', icon: FileText },
     { id: 'feedback', label: 'Phản hồi', icon: MessageSquare },
-    { id: 'settings', label: 'Cài đặt', icon: Settings },
+    { id: 'settings', label: 'Cài đặt', icon: Settings }
   ];
 
   const handleItemClick = (itemId) => {

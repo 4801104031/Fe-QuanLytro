@@ -9,20 +9,30 @@ function RoomTypeList() {
       id: 1,
       name: 'VIP',
       area: 40,
-      price: 5000000,
+      price: 7000000,
       bedCount: 2,
-      fridgeCount: 1,
-      acCount: 1
+      fridgeCount: 2,
+      acCount: 2
     },
     {
       id: 2,
+      name: 'Luxury',
+      area: 30,
+      price: 5000000,
+      bedCount: 2,
+      fridgeCount: 1,
+      acCount: 2
+    },
+    {
+      id: 3,
       name: 'Standard',
       area: 30,
       price: 3000000,
       bedCount: 1,
       fridgeCount: 1,
       acCount: 1
-    }
+    },
+   
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
