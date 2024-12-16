@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import SidebarUser from '../SideBar/SideBarUser';
 import UserBillList from '../../features/UserManagement/UserBillList';
-import UserFeedback from '../../features/UserManagement/UserFeedback';
+import UserFeedback from '../../features/UserManagement/UserFeedBack'
 import UserSettings from '../../features/UserManagement/UserSettings';
 import UserBooking from '../../features/UserManagement/UserBooking';
 import UserRoomDetails from '../../features/UserManagement/UserRoomDetails'; // Import UserRoomDetails
