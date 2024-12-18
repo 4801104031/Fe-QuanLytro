@@ -160,34 +160,42 @@ class TaiKhoanController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
 
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'Username' => 'required|string',
-            'Password' => 'required|string',
-        ]);
-
-        // Xác thực thông tin người dùng
-        if (!$token = auth('api')->attempt([
-            'Username' => $credentials['Username'],
-            'password' => $credentials['Password'],
-        ])) {
-            Log::error('Đăng nhập thất bại', ['Username' => $credentials['Username']]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Tài khoản hoặc mật khẩu không đúng.',
-            ], 401);
-        }
-
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Đăng nhập thành công.',
-            'token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
-        ]);
-    }
+     public function login(Request $request)
+     {
+         $credentials = $request->validate([
+             'Username' => 'required|string',
+             'Password' => 'required|string',
+         ]);
+     
+         // Xác thực thông tin người dùng
+         if (!$token = auth('api')->attempt([
+             'Username' => $credentials['Username'],
+             'password' => $credentials['Password'],
+         ])) {
+             Log::error('Đăng nhập thất bại', ['Username' => $credentials['Username']]);
+             return response()->json([
+                 'success' => false,
+                 'message' => 'Tài khoản hoặc mật khẩu không đúng.',
+             ], 401);
+         }
+     
+         // Lấy thông tin người dùng sau khi xác thực
+         $user = auth('api')->user();
+     
+         return response()->json([
+             'success' => true,
+             'message' => 'Đăng nhập thành công.',
+             'token' => $token,
+             'token_type' => 'bearer',
+             'expires_in' => auth('api')->factory()->getTTL() * 60,
+             'user' => [
+                 'id' => $user->id,
+                 'username' => $user->Username,
+                 'role' => $user->LoaiTaiKhoan, // Thêm vai trò người dùng
+             ],
+         ]);
+     }
+     
 
 
 

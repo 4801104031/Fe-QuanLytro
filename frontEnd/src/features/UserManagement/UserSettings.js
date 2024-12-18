@@ -2,36 +2,30 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import Modal from '../../components/Modal';
+import useLogout from '../../api/useLogout'; // Import useLogout hook
 
 const UserSettings = () => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const { logout, isLoggingOut, logoutError } = useLogout(); // Gọi hook useLogout
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Xử lý logic đăng xuất ở đây (nếu có)
-    navigate('/login');
+  const handleLogout = async () => {
+    const isSuccess = await logout();
+    if (isSuccess) {
+      navigate("/"); // Điều hướng về trang login
+    }
   };
 
-  const handleOpenInfoModal = () => {
-    setIsInfoModalOpen(true);
-  };
-
-  const handleCloseInfoModal = () => {
-    setIsInfoModalOpen(false);
-  };
-
-  const handleOpenChangePasswordModal = () => {
-    setIsChangePasswordModalOpen(true);
-  };
-
-  const handleCloseChangePasswordModal = () => {
-    setIsChangePasswordModalOpen(false);
-  };
+  const handleOpenInfoModal = () => setIsInfoModalOpen(true);
+  const handleCloseInfoModal = () => setIsInfoModalOpen(false);
+  const handleOpenChangePasswordModal = () => setIsChangePasswordModalOpen(true);
+  const handleCloseChangePasswordModal = () => setIsChangePasswordModalOpen(false);
 
   return (
     <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4">Cài đặt</h2>
+
       <Button
         onClick={handleOpenInfoModal}
         variant="primary"
@@ -39,6 +33,7 @@ const UserSettings = () => {
       >
         Thông tin tài khoản
       </Button>
+
       <Button
         onClick={handleOpenChangePasswordModal}
         variant="primary"
@@ -46,13 +41,17 @@ const UserSettings = () => {
       >
         Đổi mật khẩu
       </Button>
+
       <Button
         onClick={handleLogout}
         variant="primary"
         className="w-full py-2 px-4 rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition duration-300"
+        disabled={isLoggingOut}
       >
-        Đăng xuất
+        {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
       </Button>
+
+      {logoutError && <p className="text-red-500 text-center mt-2">{logoutError}</p>}
 
       {/* Thông tin tài khoản Modal */}
       <Modal isOpen={isInfoModalOpen} onClose={handleCloseInfoModal} title="Thông tin tài khoản">

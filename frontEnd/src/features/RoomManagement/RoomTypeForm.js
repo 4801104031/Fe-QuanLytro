@@ -1,38 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import useAddRoom from "../../api/useAddRoom"; // Import custom hook để gọi API
 
-function RoomTypeForm({ roomType, onSubmit, onCancel }) {
+function RoomTypeForm({ roomType, onSubmitSuccess, onCancel }) {
+  const { addRoom } = useAddRoom(); // Hàm gọi API thêm phòng
+  const [loading, setLoading] = useState(false); // State loading
   const [formData, setFormData] = useState({
-    name: '',
-    area: '',
-    price: '',
-    bedCount: '',
-    fridgeCount: '',
-    acCount: ''
+    name: "",
+    area: "",
+    price: "",
+    bedCount: "",
+    fridgeCount: "",
+    acCount: "",
   });
 
+  // Cập nhật dữ liệu khi chỉnh sửa phòng
   useEffect(() => {
     if (roomType) {
       setFormData(roomType);
     }
   }, [roomType]);
 
+  // Xử lý thay đổi input
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
-      [name]: name === 'name' ? value : parseFloat(value) || ''
+      [name]: name === "name" ? value : parseFloat(value) || "",
     }));
   };
 
-  const handleSubmit = (e) => {
+  // Xử lý submit form
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    setLoading(true); // Bắt đầu loading
+    try {
+      await addRoom({
+        SoPhong: formData.name,
+        LoaiPhong: "Standard", // Bạn có thể thay đổi loại phòng nếu cần
+        TrangThai: "Trống",
+        SoGiuong: formData.bedCount,
+        SoTuLanh: formData.fridgeCount,
+        SoDieuHoa: formData.acCount,
+      });
+
+      alert("Phòng mới đã được thêm thành công!");
+      onSubmitSuccess(); // Callback cập nhật lại danh sách phòng
+    } catch (error) {
+      alert("Lỗi khi thêm phòng mới: " + error.message);
+    } finally {
+      setLoading(false); // Kết thúc loading
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow-md">
       <div className="form-group">
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Tên loại phòng:</label>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          Tên loại phòng:
+        </label>
         <input
           type="text"
           id="name"
@@ -43,8 +68,11 @@ function RoomTypeForm({ roomType, onSubmit, onCancel }) {
           className="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
         />
       </div>
+
       <div className="form-group">
-        <label htmlFor="area" className="block text-sm font-medium text-gray-700">Diện tích (m²):</label>
+        <label htmlFor="area" className="block text-sm font-medium text-gray-700">
+          Diện tích (m²):
+        </label>
         <input
           type="number"
           id="area"
@@ -57,8 +85,11 @@ function RoomTypeForm({ roomType, onSubmit, onCancel }) {
           className="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
         />
       </div>
+
       <div className="form-group">
-        <label htmlFor="price" className="block text-sm font-medium text-gray-700">Giá thuê mặc định (VNĐ):</label>
+        <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+          Giá thuê mặc định (VNĐ):
+        </label>
         <input
           type="number"
           id="price"
@@ -70,8 +101,11 @@ function RoomTypeForm({ roomType, onSubmit, onCancel }) {
           className="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
         />
       </div>
+
       <div className="form-group">
-        <label htmlFor="bedCount" className="block text-sm font-medium text-gray-700">Số giường mặc định:</label>
+        <label htmlFor="bedCount" className="block text-sm font-medium text-gray-700">
+          Số giường mặc định:
+        </label>
         <input
           type="number"
           id="bedCount"
@@ -83,8 +117,11 @@ function RoomTypeForm({ roomType, onSubmit, onCancel }) {
           className="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
         />
       </div>
+
       <div className="form-group">
-        <label htmlFor="fridgeCount" className="block text-sm font-medium text-gray-700">Số tủ lạnh mặc định:</label>
+        <label htmlFor="fridgeCount" className="block text-sm font-medium text-gray-700">
+          Số tủ lạnh mặc định:
+        </label>
         <input
           type="number"
           id="fridgeCount"
@@ -96,8 +133,11 @@ function RoomTypeForm({ roomType, onSubmit, onCancel }) {
           className="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
         />
       </div>
+
       <div className="form-group">
-        <label htmlFor="acCount" className="block text-sm font-medium text-gray-700">Số điều hòa mặc định:</label>
+        <label htmlFor="acCount" className="block text-sm font-medium text-gray-700">
+          Số điều hòa mặc định:
+        </label>
         <input
           type="number"
           id="acCount"
@@ -109,11 +149,20 @@ function RoomTypeForm({ roomType, onSubmit, onCancel }) {
           className="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
         />
       </div>
+
       <div className="form-actions flex justify-end space-x-2">
-        <button type="submit" className="bg-teal-700 text-white py-2 px-4 rounded-md hover:bg-teal-800">
-          {roomType ? 'Cập nhật' : 'Thêm mới'}
+        <button
+          type="submit"
+          className="bg-teal-700 text-white py-2 px-4 rounded-md hover:bg-teal-800"
+          disabled={loading}
+        >
+          {loading ? "Đang xử lý..." : roomType ? "Cập nhật" : "Thêm mới"}
         </button>
-        <button type="button" className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600" onClick={onCancel}>
+        <button
+          type="button"
+          className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
+          onClick={onCancel}
+        >
           Hủy
         </button>
       </div>

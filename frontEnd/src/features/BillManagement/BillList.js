@@ -1,32 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Trash2, Eye, Check } from 'react-feather';
 import Modal from '../../components/Modal';
+import useFetchInvoices from '../../api/useFetchInvoices'; // Import custom hook fetch hóa đơn
+import useDeleteInvoice from '../../api/useDeleteInvoice'; // Import hook xóa hóa đơn
 
 function BillList() {
-  const [bills, setBills] = useState([
-    {
-      id: 1,
-      name: 'Hóa đơn tháng 01 - 2024',
-      room: '1',
-      status: 'Mới',
-      total: '5,000,000'
-    },
-    {
-      id: 2,
-      name: 'Hóa đơn tháng 01 - 2024',
-      room: '2',
-      status: 'Mới',
-      total: '4,500,000'
-    }
-  ]);
-
-  const [selectedMonth, setSelectedMonth] = useState('2024-01');
+  const { invoices, isLoading, fetchError, fetchInvoices } = useFetchInvoices();
+  const { deleteInvoice } = useDeleteInvoice(); // Gọi hàm xóa hóa đơn
+  const [selectedMonth, setSelectedMonth] = useState('2024-01'); // Lọc theo tháng
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleDelete = (id) => {
+  useEffect(() => {
+    fetchInvoices(); // Fetch dữ liệu hóa đơn khi component mount
+  }, []);
+
+  const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa hóa đơn này?')) {
-      setBills(bills.filter(bill => bill.id !== id));
+      try {
+        setLoading(true);
+        await deleteInvoice(id); // Gọi API xóa hóa đơn
+        alert('Xóa hóa đơn thành công!');
+        fetchInvoices(); // Reload danh sách hóa đơn sau khi xóa
+      } catch (error) {
+        alert('Lỗi khi xóa hóa đơn: ' + error.message);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -36,16 +37,14 @@ function BillList() {
   };
 
   const handleApprove = (id) => {
-    setBills(bills.map(bill => 
-      bill.id === id ? { ...bill, status: 'Đã duyệt' } : bill
-    ));
+    console.log(`Duyệt hóa đơn với ID: ${id}`);
+    // TODO: Gọi API để cập nhật trạng thái hóa đơn
   };
 
   const handleMonthChange = (e) => {
     setSelectedMonth(e.target.value);
-    // Here you would typically fetch bills for the selected month
-    // For now, we'll just log the selected month
     console.log('Selected month:', e.target.value);
+    // TODO: Thêm logic để fetch dữ liệu theo tháng nếu API hỗ trợ
   };
 
   return (
@@ -61,6 +60,10 @@ function BillList() {
           />
         </div>
       </div>
+
+      {isLoading && <p>Đang tải dữ liệu...</p>}
+      {fetchError && <p className="text-red-500">{fetchError}</p>}
+
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50">
@@ -74,62 +77,85 @@ function BillList() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {bills.map((bill, index) => (
-              <tr key={bill.id}>
-                <td className="px-4 py-3 text-sm">{index + 1}</td>
-                <td className="px-4 py-3 text-sm">{bill.name}</td>
-                <td className="px-4 py-3 text-sm">{bill.room}</td>
-                <td className="px-4 py-3 text-sm">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    bill.status === 'Mới' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {bill.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm">{bill.total}</td>
-                <td className="px-4 py-3 text-sm">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleDelete(bill.id)}
-                      className="text-red-600 hover:text-red-800"
-                      title="Xóa"
+            {invoices.length > 0 ? (
+              invoices.map((bill, index) => (
+                <tr key={bill.ID_HoaDon}>
+                  <td className="px-4 py-3 text-sm">{index + 1}</td>
+                  <td className="px-4 py-3 text-sm">{bill.Ten_hoa_don}</td>
+                  <td className="px-4 py-3 text-sm">{bill.phong_id}</td>
+                  <td className="px-4 py-3 text-sm">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        bill.TrangThai === 'Mới'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}
                     >
-                      <Trash2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleView(bill)}
-                      className="text-gray-600 hover:text-gray-800"
-                      title="Xem"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleApprove(bill.id)}
-                      className="text-green-600 hover:text-green-800"
-                      disabled={bill.status === 'Đã duyệt'}
-                      title="Duyệt"
-                    >
-                      <Check size={16} />
-                    </button>
-                  </div>
+                      {bill.TrangThai}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {parseFloat(bill.TongCong).toLocaleString()} VNĐ
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleDelete(bill.ID_HoaDon)}
+                        className="text-red-600 hover:text-red-800"
+                        title="Xóa"
+                        disabled={loading}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleView(bill)}
+                        className="text-gray-600 hover:text-gray-800"
+                        title="Xem"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleApprove(bill.ID_HoaDon)}
+                        className="text-green-600 hover:text-green-800"
+                        disabled={bill.TrangThai === 'Đã duyệt'}
+                        title="Duyệt"
+                      >
+                        <Check size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="px-4 py-3 text-center text-sm">
+                  Không có hóa đơn nào.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
-      <Modal 
-        isOpen={isModalOpen} 
+
+      <Modal
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Chi tiết hóa đơn"
       >
         {selectedBill && (
           <div className="space-y-4">
-            <p><strong>Tên hóa đơn:</strong> {selectedBill.name}</p>
-            <p><strong>Phòng:</strong> {selectedBill.room}</p>
-            <p><strong>Trạng thái:</strong> {selectedBill.status}</p>
-            <p><strong>Tổng cộng:</strong> {selectedBill.total} VNĐ</p>
-            {/* Add more details as needed */}
+            <p>
+              <strong>Tên hóa đơn:</strong> {selectedBill.Ten_hoa_don}
+            </p>
+            <p>
+              <strong>Phòng:</strong> {selectedBill.phong_id}
+            </p>
+            <p>
+              <strong>Trạng thái:</strong> {selectedBill.TrangThai}
+            </p>
+            <p>
+              <strong>Tổng cộng:</strong> {parseFloat(selectedBill.TongCong).toLocaleString()} VNĐ
+            </p>
           </div>
         )}
       </Modal>
@@ -138,4 +164,3 @@ function BillList() {
 }
 
 export default BillList;
-

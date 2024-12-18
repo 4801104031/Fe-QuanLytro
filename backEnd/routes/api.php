@@ -71,22 +71,28 @@ Route::middleware('auth:api')->post('/logout', [TaiKhoanController::class, 'logo
 Route::middleware('auth:api')->get('/me', [TaiKhoanController::class, 'me']);
 Route::middleware('auth:api')->post('/change-password', [TaiKhoanController::class, 'changePassword']);
 
+
+
 //chức năng phân quyền ở tài khoản admin
-Route::middleware(['auth:api', 'admin'])->group(function () {
+// Route::middleware(['auth:api', 'admin'])->group(function () {
     //tài khoản
     Route::post('/tai-khoan', [TaiKhoanController::class, 'store']);
     Route::delete('/tai-khoan/{id}', [TaiKhoanController::class, 'destroy']);
-
-    //phòng. loại phòng
+ 
+    //phòng, loại phòng
     Route::put('/phong/{id}', [PhongController::class, 'edit']);
     Route::delete('/phong/{id}', [PhongController::class, 'delete']);
     Route::post('/phong', [PhongController::class, 'store']);
     Route::post('/loaiphong', [LoaiPhongController::class, 'store']);
     Route::put('/loaiphong/{id}', [LoaiPhongController::class, 'update']);
+    Route::delete('/loaiphong/{id}', [LoaiPhongController::class, 'destroy']);
+
 
     //dịch vụ
     Route::post('/dichvu', [DichVuController::class, 'store']);
     Route::put('/dichvu/{id}', [DichVuController::class, 'update']);
+    Route::delete('/dichvu/{id}', [DichVuController::class, 'destroy']);
+    Route::get('/dichvu/{roomId}/indexes', [DichVuController::class, 'getServiceIndexes']);
 
     //Phòng- dịch vụ
     Route::post('/phong-dich-vu', [PhongDichVuController::class, 'store']);
@@ -109,5 +115,5 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::delete('/hoadon/{id}', [HoaDonController::class, 'destroy']); 
 
 
-});
+// });
 

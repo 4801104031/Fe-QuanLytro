@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import useAddResident from '../../api/useAddResident'; // Import hook gọi API thêm mới
+import useEditResident from '../../api/useEditResident'; // Import hook gọi API sửa
 
 function ResidentForm({ resident, onSubmit, onCancel }) {
+  const { addResident } = useAddResident(); // Gọi hàm addResident từ hook
+  const { editResident } = useEditResident(); // Gọi hàm editResident từ hook
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -10,9 +15,18 @@ function ResidentForm({ resident, onSubmit, onCancel }) {
     room: ''
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false); // Trạng thái submit
+
   useEffect(() => {
     if (resident) {
-      setFormData(resident);
+      setFormData({
+        firstName: resident.Ho || '',
+        lastName: resident.Ten || '',
+        dateOfBirth: resident.Ngay_sinh || '',
+        idNumber: resident.CMND_CCCD || '',
+        phone: resident.So_dien_thoai || '',
+        room: resident.phong_id || ''
+      });
     }
   }, [resident]);
 
@@ -24,9 +38,35 @@ function ResidentForm({ resident, onSubmit, onCancel }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    setIsSubmitting(true);
+
+    // Chuyển đổi dữ liệu form thành key phù hợp với backend
+    const formattedData = {
+      Ho: formData.firstName,
+      Ten: formData.lastName,
+      Ngay_sinh: formData.dateOfBirth,
+      CMND_CCCD: formData.idNumber,
+      So_dien_thoai: formData.phone,
+      phong_id: formData.room
+    };
+
+    try {
+      if (resident && resident.ID_CuDan) {
+        // Nếu có ID_CuDan => gọi API sửa
+        await editResident(resident.ID_CuDan, formattedData);
+      } else {
+        // Nếu không có ID_CuDan => gọi API thêm mới
+        await addResident(formattedData);
+      }
+      onSubmit(); // Callback khi thành công (ví dụ: cập nhật danh sách)
+    } catch (error) {
+      console.error("Lỗi khi lưu cư dân:", error.message);
+      alert("Lỗi khi lưu cư dân: " + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -104,10 +144,18 @@ function ResidentForm({ resident, onSubmit, onCancel }) {
         />
       </div>
       <div className="form-actions flex justify-end space-x-2">
-        <button type="submit" className="bg-teal-700 text-white py-2 px-4 rounded-md hover:bg-teal-800">
-          {resident ? 'Cập nhật' : 'Thêm mới'}
+        <button 
+          type="submit" 
+          className="bg-teal-700 text-white py-2 px-4 rounded-md hover:bg-teal-800" 
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Đang xử lý...' : (resident ? 'Cập nhật' : 'Thêm mới')}
         </button>
-        <button type="button" className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600" onClick={onCancel}>
+        <button 
+          type="button" 
+          className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600" 
+          onClick={onCancel}
+        >
           Hủy
         </button>
       </div>

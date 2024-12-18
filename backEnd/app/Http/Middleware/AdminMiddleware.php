@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth; // Thêm thư viện JWT
 use Illuminate\Support\Facades\Auth;
 
 class AdminMiddleware
@@ -17,12 +18,20 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        // Kiểm tra nếu người dùng đăng nhập và có vai trò admin
-        if (Auth::check() && Auth::user()->LoaiTaiKhoan === 'admin') {
-            return $next($request);
-        }
+        try {
+            // Kiểm tra và lấy thông tin user từ JWT
+            $user = JWTAuth::parseToken()->authenticate();
 
-        // Nếu không phải admin, trả về lỗi 403 (Forbidden)
-        return response()->json(['message' => 'Forbidden'], 403);
+            // Kiểm tra vai trò của user
+            if ($user && $user->LoaiTaiKhoan === 'admin') {
+                return $next($request); // Cho phép request đi tiếp
+            }
+
+            // Trả về lỗi nếu không phải admin
+            return response()->json(['message' => 'Forbidden: Bạn không có quyền truy cập.'], 403);
+        } catch (\Exception $e) {
+            // Xử lý lỗi nếu JWT không hợp lệ hoặc không tồn tại
+            return response()->json(['message' => 'Unauthorized: Token không hợp lệ.'], 401);
+        }
     }
 }

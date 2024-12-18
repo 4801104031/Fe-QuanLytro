@@ -1,30 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '../../components/Modal';
+import useFetchRooms from '../../api/useFetchRooms'; // Hook lấy danh sách phòng
+import useBookRoom from '../../api/useBookRoom'; // Hook gọi API đặt phòng
 
 const UserBooking = () => {
-  const [rooms, setRooms] = useState([
-    {
-      id: 1,
-      roomNumber: '101',
-      roomType: 'VIP',
-      status: 'Trống',
-      bedCount: 2,
-      fridgeCount: 1,
-      acCount: 1
-    },
-    {
-      id: 2,
-      roomNumber: '102',
-      roomType: 'Standard',
-      status: 'Đã thuê',
-      bedCount: 1,
-      fridgeCount: 1,
-      acCount: 1
-    }
-  ]);
-
+  const { rooms, isLoading, fetchError, fetchRooms } = useFetchRooms(); // Lấy dữ liệu động từ API
+  const { bookRoom } = useBookRoom(); // Gọi API đặt phòng
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [formData, setFormData] = useState({
+    Ho: '',
+    Ten: '',
+    phone: '',
+    checkInDate: '',
+    checkOutDate: '',
+  });
+
+  useEffect(() => {
+    fetchRooms(); // Fetch dữ liệu phòng khi component được mount
+  }, []);
 
   const openModal = (room) => {
     setSelectedRoom(room);
@@ -34,20 +28,47 @@ const UserBooking = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedRoom(null);
+    setFormData({ Ho: '', Ten: '', phone: '', checkInDate: '', checkOutDate: '' }); // Reset form
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Xử lý logic đặt phòng ở đây
-    console.log('Booking data:', selectedRoom);
-    closeModal();
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    try {
+      const bookingData = {
+        Phong_id: selectedRoom.ID_Phong,
+        Ho: formData.Ho,          // Họ
+        Ten: formData.Ten,        // Tên
+        Ngay_bat_dau: formData.checkInDate,  // Ngày đến
+        Ngay_ket_thuc: formData.checkOutDate // Ngày đi
+      };
+  
+      await bookRoom(bookingData); // Gọi API
+      alert('Đặt phòng thành công!');
+      closeModal();
+      fetchRooms(); // Làm mới danh sách phòng
+    } catch (error) {
+      console.error('Lỗi khi đặt phòng:', error.response?.data || error.message);
+      alert('Lỗi khi đặt phòng: ' + (error.response?.data?.message || error.message));
+    }
+  };
+  
 
   return (
     <div className="content">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold">Danh sách phòng</h1>
       </div>
+
+      {/* Hiển thị loading hoặc lỗi */}
+      {isLoading && <p>Đang tải dữ liệu...</p>}
+      {fetchError && <p className="text-red-500">{fetchError}</p>}
+
       <div className="table-container">
         <table className="data-table">
           <thead>
@@ -64,21 +85,25 @@ const UserBooking = () => {
           </thead>
           <tbody>
             {rooms.map((room, index) => (
-              <tr key={room.id}>
+              <tr key={room.ID_Phong}>
                 <td>{index + 1}</td>
-                <td>{room.roomNumber}</td>
-                <td>{room.roomType}</td>
+                <td>{room.So_phong}</td>
+                <td>{room.Loai_phong_id === 1 ? 'VIP' : 'Standard'}</td>
                 <td>
-                  <span className={`status-badge ${room.status === 'Trống' ? 'empty' : 'occupied'}`}>
-                    {room.status}
+                  <span
+                    className={`status-badge ${
+                      room.Trang_thai === 'Trống' ? 'empty' : 'occupied'
+                    }`}
+                  >
+                    {room.Trang_thai === 'Trống' ? 'Trống' : 'Đã thuê'}
                   </span>
                 </td>
-                <td>{room.bedCount}</td>
-                <td>{room.fridgeCount}</td>
-                <td>{room.acCount}</td>
+                <td>{room.So_giuong}</td>
+                <td>{room.So_tu_lanh}</td>
+                <td>{room.So_dieu_hoa}</td>
                 <td>
-                  {room.status === 'Trống' && (
-                    <button 
+                  {room.Trang_thai === 'Trống' && (
+                    <button
                       className="bg-teal-700 text-white py-2 px-4 rounded-md hover:bg-teal-800"
                       onClick={() => openModal(room)}
                     >
@@ -91,63 +116,91 @@ const UserBooking = () => {
           </tbody>
         </table>
       </div>
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
-        title={`Đặt ${selectedRoom?.roomNumber}`}
+
+      {/* Modal Đặt Phòng */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={`Đặt phòng ${selectedRoom?.So_phong}`}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Tên</label>
+            <label htmlFor="Ho" className="block text-sm font-medium text-gray-700">
+              Họ
+            </label>
             <input
               type="text"
-              id="name"
-              name="name"
+              id="Ho"
+              name="Ho"
+              value={formData.Ho}
+              onChange={handleChange}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+              className="mt-1 block w-full border rounded-md py-2 px-3"
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+            <label htmlFor="Ten" className="block text-sm font-medium text-gray-700">
+              Tên
+            </label>
             <input
-              type="email"
-              id="email"
-              name="email"
+              type="text"
+              id="Ten"
+              name="Ten"
+              value={formData.Ten}
+              onChange={handleChange}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+              className="mt-1 block w-full border rounded-md py-2 px-3"
             />
           </div>
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Số điện thoại</label>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              Số điện thoại
+            </label>
             <input
               type="tel"
               id="phone"
               name="phone"
+              value={formData.phone}
+              onChange={handleChange}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+              className="mt-1 block w-full border rounded-md py-2 px-3"
             />
           </div>
           <div>
-            <label htmlFor="checkInDate" className="block text-sm font-medium text-gray-700">Ngày đến nhận phòng</label>
+            <label htmlFor="checkInDate" className="block text-sm font-medium text-gray-700">
+              Ngày đến
+            </label>
             <input
               type="date"
               id="checkInDate"
               name="checkInDate"
+              value={formData.checkInDate}
+              onChange={handleChange}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+              className="mt-1 block w-full border rounded-md py-2 px-3"
+            />
+          </div>
+          <div>
+            <label htmlFor="checkOutDate" className="block text-sm font-medium text-gray-700">
+              Ngày đi
+            </label>
+            <input
+              type="date"
+              id="checkOutDate"
+              name="checkOutDate"
+              value={formData.checkOutDate}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full border rounded-md py-2 px-3"
             />
           </div>
           <div className="flex justify-end space-x-2">
-            <button
-              type="button"
-              onClick={closeModal}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
-            >
+            <button type="button" onClick={closeModal} className="px-4 py-2 border rounded-md">
               Hủy
             </button>
             <button
               type="submit"
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+              className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
             >
               Đặt phòng
             </button>

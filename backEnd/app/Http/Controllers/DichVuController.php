@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DichVu;
+use App\Models\Phong;
 use Illuminate\Http\Request;
 
 class DichVuController extends Controller
@@ -97,4 +98,74 @@ class DichVuController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Xóa dịch vụ theo ID.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy($id)
+    {
+        try {
+            // Tìm dịch vụ theo ID
+            $dichVu = DichVu::find($id);
+
+            // Kiểm tra nếu dịch vụ không tồn tại
+            if (!$dichVu) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dịch vụ không tồn tại.',
+                ], 404);
+            }
+
+            // Xóa dịch vụ
+            $dichVu->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Xóa dịch vụ thành công.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi xóa dịch vụ: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Lấy chỉ số dịch vụ theo phòng ID.
+     *
+     * @param int $roomId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getServiceIndexes($phongId)
+    {
+        try {
+            // Tìm phòng theo ID và load dịch vụ thông qua bảng trung gian
+            $phong = Phong::with(['dichVus' => function ($query) {
+                $query->select('dich_vu.*', 'phong_dich_vu.chi_so', 'phong_dich_vu.ngay_ghi_nhan');
+            }])->find($phongId);
+
+            if (!$phong) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Phòng không tồn tại.'
+                ], 404);
+            }
+
+            // Trả về danh sách chỉ số dịch vụ của phòng
+            return response()->json([
+                'success' => true,
+                'data' => $phong->dichVus,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi lấy chỉ số dịch vụ: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }

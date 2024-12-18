@@ -33,11 +33,12 @@ class LoaiPhongController extends Controller
             // Xác thực dữ liệu
             $validatedData = $request->validate([
                 'Ten_loai_phong' => 'required|string|max:255',
-                'Dien_tich' => 'required|numeric|min:0',
-                'Gia_thue' => 'required|numeric|min:0',
-                'So_giuong_mac_dinh' => 'required|integer|min:0',
-                'So_tu_lanh_mac_dinh' => 'required|integer|min:0',
-                'So_dieu_hoa_mac_dinh' => 'required|integer|min:0',
+                'Dien_tich' => 'nullable|numeric|min:0',
+                'Gia_thue' => 'nullable|numeric|min:0',
+                'So_giuong_mac_dinh' => 'nullable|integer|min:0',
+                'So_tu_lanh_mac_dinh' => 'nullable|integer|min:0',
+                'So_dieu_hoa_mac_dinh' => 'nullable|integer|min:0',
+
             ]);
 
             // Thêm loại phòng mới
@@ -54,6 +55,7 @@ class LoaiPhongController extends Controller
                 'message' => 'Lỗi khi thêm loại phòng: ' . $e->getMessage(),
             ], 500);
         }
+
     }
 
     /**
@@ -98,6 +100,28 @@ class LoaiPhongController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Lỗi khi cập nhật loại phòng: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            // Tìm loại phòng theo ID
+            $loaiPhong = LoaiPhong::findOrFail($id);
+
+            // Xóa loại phòng
+            $loaiPhong->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Xóa loại phòng thành công.',
+            ]);
+        } catch (\Exception $e) {
+            // Xử lý khi gặp lỗi
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi xóa loại phòng: ' . $e->getMessage(),
             ], 500);
         }
     }

@@ -20,13 +20,21 @@ class TaiKhoan extends Model implements AuthenticatableContract, JWTSubject
 
     // Các cột có thể được gán giá trị hàng loạt
     protected $fillable = [
-        'LoaiTaiKhoan',
-        'Username',
-        'Password',
-        'CuDan_id',
+        'LoaiTaiKhoan',   // Vai trò của tài khoản
+        'Username',       // Tên đăng nhập
+        'Password',       // Mật khẩu
+        'CuDan_id',       // ID cư dân liên kết
     ];
 
-    // Định nghĩa mối quan hệ với bảng `cu_dan`
+    // Ẩn cột khi serialize (không gửi nhạy cảm ra API)
+    protected $hidden = [
+        'Password',
+        'remember_token',
+    ];
+
+    /**
+     * Định nghĩa mối quan hệ với bảng `cu_dan`.
+     */
     public function cuDan()
     {
         return $this->belongsTo(CuDan::class, 'CuDan_id', 'ID_CuDan');
@@ -43,19 +51,32 @@ class TaiKhoan extends Model implements AuthenticatableContract, JWTSubject
     }
 
     /**
-     * Lấy thêm các claim (thông tin) tùy chỉnh để lưu trong JWT.
+     * Lấy các claim (thông tin) tùy chỉnh để lưu trong JWT.
      *
      * @return array
      */
     public function getJWTCustomClaims()
     {
-        return [];
+        return [
+            'role' => $this->LoaiTaiKhoan, // Thêm vai trò vào JWT payload
+        ];
     }
 
+    /**
+     * Lấy mật khẩu của tài khoản để xác thực.
+     *
+     * @return string
+     */
     public function getAuthPassword()
     {
-        return $this->Password; // Đảm bảo cột đúng tên với bảng
+        return $this->Password; // Cột `Password` trong cơ sở dữ liệu
     }
 
-    
+    /**
+     * Đặt tên cột `remember_token` nếu cần.
+     */
+    public function getRememberTokenName()
+    {
+        return 'remember_token';
+    }
 }

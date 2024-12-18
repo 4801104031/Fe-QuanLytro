@@ -37,6 +37,12 @@ class HopDong extends Model
         return $this->belongsTo(Phong::class, 'phong_id', 'ID_Phong');
     }
 
+    public function loaiPhong()
+    {
+        return $this->belongsTo(LoaiPhong::class, 'loai_phong_id', 'ID_LoaiPhong');
+    }
+
+
     // Định nghĩa mối quan hệ với bảng Cư Dân
     public function cuDan()
     {

@@ -14,11 +14,25 @@ class HopDongController extends Controller
      */
     public function index()
     {
-        // Lấy toàn bộ dữ liệu từ bảng hop_dong cùng các liên kết
-        $hopDongs = HopDong::with(['phong', 'cuDan'])->get();
+        // Lấy danh sách hợp đồng với thông tin liên quan từ các bảng
+        $hopDongs = HopDong::with(['phong.loaiPhong', 'cuDan'])
+            ->get()
+            ->map(function ($hopDong) {
+                return [
+                    'ID_HopDong' => $hopDong->ID_HopDong,
+                    'phong_id' => $hopDong->phong_id,
+                    'cu_dan_id' => $hopDong->cu_dan_id,
+                    'Loai_hop_dong' => $hopDong->Loai_hop_dong,
+                    'Ngay_bat_dau' => $hopDong->Ngay_bat_dau,
+                    'Ngay_ket_thuc' => $hopDong->Ngay_ket_thuc,
+                    'Hieu_luc' => $hopDong->Hieu_luc,
+                    'Tien_thue_hang_thang' => $hopDong->phong->loaiPhong->Gia_thue ?? "0.00", // Lấy tiền thuê hàng tháng
+                ];
+            });
 
         return response()->json($hopDongs);
     }
+
 
     /**
      * Thêm hợp đồng mới.

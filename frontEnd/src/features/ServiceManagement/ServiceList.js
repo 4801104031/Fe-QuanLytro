@@ -1,42 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Edit, Trash2 } from 'react-feather';
 import Modal from '../../components/Modal';
 import ServiceForm from './ServiceForm';
+import useFetchServices from '../../api/useFetchServices';
+import useDeleteService from '../../api/useDeleteService'; // Import API xóa dịch vụ
 
 function ServiceList() {
-  const [services, setServices] = useState([
-    {
-      id: 1,
-      name: 'Điện',
-      price: 3500,
-      unit: 'kilowatt-hour (kWh)',
-      type: 'Mặc định'
-    },
-    {
-      id: 2,
-      name: 'Vệ sinh riêng',
-      price: 100000,
-      unit: 'phòng/tháng',
-      type: 'Tùy chọn'
-    },
-    {
-      id: 3,
-      name: 'Rác thải',
-      price: 20000,
-      unit: 'người/tháng',
-      type: 'Mặc định'
-    },
-    {
-      id: 4,
-      name: 'Nước',
-      price: 20000,
-      unit: 'mét khối',
-      type: 'Mặc định'
-    }
-  ]);
+  const { services, isLoading, fetchError, fetchServices } = useFetchServices();
+  const { deleteService } = useDeleteService(); // Hàm xóa dịch vụ từ API
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingService, setEditingService] = useState(null);
+
+  useEffect(() => {
+    fetchServices(); // Fetch dữ liệu từ API khi component mount
+  }, []);
 
   const handleAdd = () => {
     setEditingService(null);
@@ -48,22 +26,20 @@ function ServiceList() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) {
-      setServices(services.filter(service => service.id !== id));
+      try {
+        await deleteService(id); // Gọi API xóa dịch vụ
+        fetchServices(); // Refresh danh sách sau khi xóa
+      } catch (error) {
+        console.error('Lỗi khi xóa dịch vụ:', error.message);
+      }
     }
   };
 
   const handleSubmit = (formData) => {
-    if (editingService) {
-      // Update existing service
-      setServices(services.map(service => 
-        service.id === editingService.id ? { ...formData, id: service.id } : service
-      ));
-    } else {
-      // Add new service
-      setServices([...services, { ...formData, id: Date.now() }]);
-    }
+    console.log('Form data submitted:', formData);
+    // TODO: Thêm API thêm hoặc cập nhật dịch vụ
     setIsModalOpen(false);
   };
 
@@ -75,6 +51,12 @@ function ServiceList() {
           + Thêm mới
         </button>
       </div>
+
+      {/* Hiển thị trạng thái loading và lỗi */}
+      {isLoading && <p>Đang tải dữ liệu...</p>}
+      {fetchError && <p className="text-red-500">{fetchError}</p>}
+
+      {/* Bảng dữ liệu dịch vụ */}
       <div className="table-container">
         <table className="data-table">
           <thead>
@@ -88,30 +70,44 @@ function ServiceList() {
             </tr>
           </thead>
           <tbody>
-            {services.map((service, index) => (
-              <tr key={service.id}>
-                <td>{index + 1}</td>
-                <td>{service.name}</td>
-                <td>{service.price.toLocaleString()}</td>
-                <td>{service.unit}</td>
-                <td>{service.type}</td>
-                <td>
-                  <div className="flex gap-2">
-                    <button className="action-button text-blue-500 hover:text-blue-700" onClick={() => handleEdit(service)}>
-                      <Edit size={18} />
-                    </button>
-                    <button className="action-button text-red-500 hover:text-red-700" onClick={() => handleDelete(service.id)}>
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </td>
+            {services.length > 0 ? (
+              services.map((service, index) => (
+                <tr key={service.id}>
+                  <td>{index + 1}</td>
+                  <td>{service.name}</td>
+                  <td>{service.price ? service.price.toLocaleString() : '0'}</td>
+                  <td>{service.unit}</td>
+                  <td>{service.type}</td>
+                  <td>
+                    <div className="flex gap-2">
+                      <button
+                        className="action-button text-blue-500 hover:text-blue-700"
+                        onClick={() => handleEdit(service)}
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        className="action-button text-red-500 hover:text-red-700"
+                        onClick={() => handleDelete(service.id)} // Gọi hàm xóa động
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6">Không có dịch vụ nào.</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
-      <Modal 
-        isOpen={isModalOpen} 
+
+      {/* Modal thêm/sửa dịch vụ */}
+      <Modal
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingService ? 'Sửa dịch vụ' : 'Thêm dịch vụ mới'}
       >
